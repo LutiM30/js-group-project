@@ -1,0 +1,27 @@
+body {
+  background-color: #1a202c;
+  color: #e2e8f0;
+}
+input,
+textarea {
+  background-color: #2d3748;
+  color: #e2e8f0;
+}
+button {
+  background-color: #4a5568;
+  color: #e2e8f0;
+}
+.task-card {
+  background-color: #2d3748;
+}
+.task-buttons button {
+  background-color: transparent;
+  color: #e2e8f0;
+  transition: color 0.2s;
+}
+.task-buttons button:hover {
+  color: #cbd5e0;
+}
+.task-buttons button:hover i {
+  transform: scale(1.1);
+}
