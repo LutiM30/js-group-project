@@ -5,6 +5,8 @@ const demoDesc =
 
 const localStorageTasks = "tasks";
 
+const hide = " hidden";
+
 const localStorageTasksArr = JSON.parse(
   localStorage?.getItem(localStorageTasks)
 );
@@ -61,6 +63,11 @@ const additionalFunctionality = {
   },
   lostFocus: () =>
     $("#taskTitle").val() && $("#taskDescription").val() && TasksCRUD.Create(),
+  toggleDropdown: () => {
+    $("#dropdownDefaultCheckbox").attr("class", (i, origValue) =>
+      origValue.includes(hide) ? origValue.replace(hide, "") : origValue + hide
+    );
+  },
 };
 
 const TasksCRUD = {
@@ -129,6 +136,7 @@ const TasksCRUD = {
 
 $(document).ready(() => {
   $("#addTask").click(TasksCRUD.Create);
+  $("#dropdownCheckboxButton").click(additionalFunctionality.toggleDropdown);
 
   $(window).blur(additionalFunctionality.lostFocus);
 
