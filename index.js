@@ -46,10 +46,15 @@ function addTask() {
   }
 }
 
-// Initialize with existing tasks
-tasks.forEach((task) => {
-  const taskItem = document.createElement("li");
-  taskItem.classList.add("bg-gray-800", "p-2", "rounded-md", "shadow-sm");
-  taskItem.innerHTML = taskCardHTML(task.title, task.description);
-  document.getElementById("taskList").appendChild(taskItem);
+$(document).ready(() => {
+  $("#addTask").click(addTask);
+
+  tasks.forEach((task) => {
+    const taskItem = document.createElement("li");
+    taskItem.classList.add("bg-gray-800", "p-2", "rounded-md", "shadow-sm");
+    taskItem.innerHTML = taskCardHTML(task.title, task.description);
+    document.getElementById("taskList").appendChild(taskItem);
+  });
 });
+
+// Initialize with existing tasks
