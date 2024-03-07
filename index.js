@@ -50,7 +50,7 @@ const additionalFunctionality = {
     focusSearch: (e) =>
       e.ctrlKey && e.keyCode === 191 ? $("#taskSearch").focus() : "",
   },
-  changePlaceHolderEverySecond: () => {
+  changePlaceHolder: () => {
     const tasksTitle = tasks?.map((task) => task.title);
     const randomIndex = Math.floor(Math.random() * tasksTitle.length);
 
@@ -136,7 +136,7 @@ $(document).ready(() => {
   $(document).keydown(additionalFunctionality.keybindings.focusTask);
   $(document).keydown(additionalFunctionality.keybindings.focusSearch);
 
-  setInterval(additionalFunctionality.changePlaceHolderEverySecond, 1 * 1000);
+  setInterval(additionalFunctionality.changePlaceHolder, 2 * 1000);
 
   // search functionality
   $("#taskSearch").on("keypress", TasksCRUD.Read);
