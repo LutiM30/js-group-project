@@ -6,16 +6,39 @@ const demoDesc =
 const demoAssigned = ["Varshil", "Mitul"];
 const demoPriority = "Low";
 const demoDeadline = "2024-03-31";
+const taskPriorityColors = {
+  high: `bg-red-900`,
+  medium: "bg-yellow-900",
+  low: "bg-green-900",
+};
 
 let selectedAssignedValues = [];
+const getRandomOfArray = (arr = []) => {
+  const randomIndex = Math.floor(Math.random() * arr.length);
 
+  return arr[randomIndex];
+};
 const localStorageTasks = "tasks";
 
 const hide = " hidden";
 
 let tasks = [];
 
-const localStorageTasksArr = JSON.parse(localStorage?.getItem(localStorageTasks));
+const colors = [
+  "blue",
+  "red",
+  "green",
+  "amber",
+  "pink",
+  "indigo",
+  "purple",
+  "teal",
+  "cyan",
+];
+
+const localStorageTasksArr = JSON.parse(
+  localStorage?.getItem(localStorageTasks)
+);
 
 if (!localStorageTasksArr || localStorageTasksArr.length === 0) {
   tasks = [
@@ -31,25 +54,36 @@ if (!localStorageTasksArr || localStorageTasksArr.length === 0) {
   tasks = localStorageTasksArr;
 }
 
-console.log("Tasks below sample : ", tasks);
-
 const taskCardHTML = (title, description, assigned, priority, deadline) =>
   ` <div class="flex justify-between items-center">
   <div class="flex flex-col">
     <strong class="text-white">${title}</strong>
     <p class="text-gray-300">${description}</p>
-    <div class="flex items-center space-x-2">
+${
+  assigned
+    ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Assigned to :</h1>
         <span class="text-white">${assigned.join(", ")}</span>
-    </div>
-    <div class="flex items-center space-x-2">
+    </div>`
+    : ""
+}
+${
+  priority
+    ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Priority :</h1>
         <span class="text-white">${priority}</span>
-    </div>
-    <div class="flex items-center space-x-2">
+    </div>`
+    : ""
+}
+ 
+ ${
+   deadline
+     ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Deadline :</h1>
         <span class="text-white">${deadline}</span>
-    </div>
+    </div>`
+     : ""
+ }
   </div>
 
   <div class="flex space-x-2 task-buttons">
@@ -70,17 +104,18 @@ const additionalFunctionality = {
     createTask: (e) =>
       e.ctrlKey && e.keyCode === 13 ? TasksCRUD.Create() : "",
     focusTask: (e) =>
-      e.ctrlKey && e?.keyCode === 75 ? $("#taskTitle").focus() : "",
+      e.ctrlKey && e?.keyCode === 73 ? $("#taskTitle").focus() : "",
     focusSearch: (e) =>
       e.ctrlKey && e.keyCode === 191 ? $("#taskSearch").focus() : "",
   },
   changePlaceHolder: () => {
     const tasksTitle = tasks?.map((task) => task.title);
-    const randomIndex = Math.floor(Math.random() * tasksTitle.length);
 
     $("#taskSearch").attr(
       "placeholder",
-      `Ctrl + / for search (${tasksTitle[randomIndex] || "No Tasks right now"})`
+      `Ctrl + / for search (${
+        getRandomOfArray(tasksTitle) || "No Tasks right now"
+      })`
     );
   },
   lostFocus: () =>
@@ -90,6 +125,10 @@ const additionalFunctionality = {
       origValue.includes(hide) ? origValue.replace(hide, "") : origValue + hide
     );
   },
+  randomClassForChip: () =>
+    `bg-gradient-to-tr from-${getRandomOfArray(
+      colors
+    )}-900 to-${getRandomOfArray(colors)}-800`,
 };
 
 const updateSelectedAssignedValues = () => {
@@ -100,11 +139,14 @@ const updateSelectedAssignedValues = () => {
     if ($(this).prop("checked")) {
       const selectedValue = $(this).val().trim();
       selectedAssignedValues.push(selectedValue);
-      $(".assign-selected").append(`<div class="flex-initial p-2 bg-white text-black rounded-md">${selectedValue}</div>`);
+      $(".assign-selected").append(
+        `<div
+          class="relative grid select-none items-center whitespace-nowrap rounded-lg bg-teal-500    py-1.5 px-3 font-sans text-xs font-bold uppercase text-white ${additionalFunctionality.randomClassForChip()}">
+          <span class="">${selectedValue}</span>
+        </div>`
+      );
     }
   });
-
-  console.log("Selected values:", selectedAssignedValues);
 };
 
 const TasksCRUD = {
@@ -112,10 +154,8 @@ const TasksCRUD = {
     const title = $("#taskTitle").val();
     const description = $("#taskDescription").val();
     const assigned = [...selectedAssignedValues];
-    const priority = $("#dropdownPriority").val();
+    const priority = $("#dropdownPriority").val()?.toLowerCase();
     const deadline = $("#deadlineDate").val();
-
-    console.log(title, description, assigned, priority, deadline);
 
     if (title && description && assigned.length > 0 && priority && deadline) {
       tasks.push({ title, description, assigned, priority, deadline });
@@ -124,7 +164,10 @@ const TasksCRUD = {
       // Clear input fields
       $("#taskTitle").val("");
       $("#taskDescription").val("");
-      $('#dropdownDefaultCheckbox input[type="checkbox"]').prop("checked", false);
+      $('#dropdownDefaultCheckbox input[type="checkbox"]').prop(
+        "checked",
+        false
+      );
       selectedAssignedValues.length = 0;
       $(".assign-selected").empty();
 
@@ -133,9 +176,9 @@ const TasksCRUD = {
 
       //focus on title
       $("#taskTitle").focus();
+      additionalFunctionality.toggleDropdown();
       setError("");
     } else {
-
       let errorMessage = "";
 
       if (!title) {
@@ -148,8 +191,7 @@ const TasksCRUD = {
         errorMessage = "Priority is required.";
       } else if (!deadline) {
         errorMessage = "Deadline is required.";
-      }
-      else {
+      } else {
         return true;
       }
 
@@ -163,31 +205,37 @@ const TasksCRUD = {
     const searchQuery = $("#taskSearch").val()?.toLowerCase();
 
     const filteredTasks = searchQuery
-      ? tasks?.filter(
-        (task) =>
-          task.title.toLowerCase().match(searchQuery)?.length > 0 ||
-          task.description.toLowerCase().match(searchQuery)?.length > 0 ||
-          task.assigned.join(", ").toLowerCase().match(searchQuery)?.length > 0 ||
-          task.priority.toLowerCase().match(searchQuery)?.length > 0 ||
-          task.deadline.toLowerCase().match(searchQuery)?.length > 0
-      )
-      : tasks;
+      ? tasks?.filter((task) => {
+          const title = task.title.toLowerCase();
+          const description = task.description.toLowerCase();
+          const assignedTo = task?.assigned?.join(", ").toLowerCase();
+          const priority = task?.priority?.toLowerCase();
+          const deadline = task?.deadline?.toLowerCase();
 
-    console.log("Tasks : ", tasks);
+          return (
+            title?.match(searchQuery)?.length > 0 ||
+            description?.match(searchQuery)?.length > 0 ||
+            assignedTo?.match(searchQuery)?.length > 0 ||
+            priority?.match(searchQuery)?.length > 0 ||
+            deadline?.match(searchQuery)?.length > 0
+          );
+        })
+      : tasks;
 
     filteredTasks.forEach((task, index) => {
       const taskItem = document.createElement("li");
       taskItem.classList.add("bg-gray-800", "p-2", "rounded-md", "shadow-sm");
+      taskItem.classList.add(
+        taskPriorityColors[task?.priority?.toLowerCase() || demoPriority]
+      );
 
-      if (task.priority.toLowerCase() === "high") {
-        taskItem.classList.add("priority-high");
-      } else if (task.priority.toLowerCase() === "medium") {
-        taskItem.classList.add("priority-medium");
-      } else if (task.priority.toLowerCase() === "low") {
-        taskItem.classList.add("priority-low");
-      }
-
-      taskItem.innerHTML = taskCardHTML(task.title, task.description, task.assigned, task.priority, task.deadline);
+      taskItem.innerHTML = taskCardHTML(
+        task.title,
+        task.description,
+        task.assigned,
+        task.priority,
+        task.deadline
+      );
 
       // delete button functionality
       const deleteButton = taskItem.querySelector(".delete-button");
@@ -207,16 +255,18 @@ const TasksCRUD = {
 
     $('#dropdownDefaultCheckbox input[type="checkbox"]').each(function () {
       if (tasks[index].assigned.includes($(this).val())) {
-
-        $(this).prop('checked', true); // Check the checkbox if the assigned value matches
+        $(this).prop("checked", true); // Check the checkbox if the assigned value matches
         selectedAssignedValues.push($(this).val()); // Push the value to the selectedAssignedValues array
 
-        $("#dropdownDefaultCheckbox").removeClass('hidden');
+        $("#dropdownDefaultCheckbox").removeClass("hidden");
 
-        $('.assign-selected').append(`<div class="flex-initial p-2 bg-white text-black rounded-md">${$(this).val()}</div>`);
-
+        $(".assign-selected").append(
+          `<div class="flex-initial p-2 bg-white text-black rounded-md">${$(
+            this
+          ).val()}</div>`
+        );
       } else {
-        $(this).prop('checked', false);
+        $(this).prop("checked", false);
       }
     });
 
@@ -248,7 +298,7 @@ $(document).ready(() => {
   setInterval(additionalFunctionality.changePlaceHolder, 2 * 1000);
 
   // search functionality
-  $("#taskSearch").on("keypress", TasksCRUD.Read);
+  $("#taskSearch").on("keyup", TasksCRUD.Read);
 
   // initial rendering
   TasksCRUD.Read();
