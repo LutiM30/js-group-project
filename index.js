@@ -3,36 +3,58 @@ const demoTitle =
 const demoDesc =
   "Lorem ipsum dolor sit amet, laboris aute ea consectetur dolore adipisicing sit nulla aliqua.";
 
+const demoAssigned = ["Varshil", "Mitul"];
+const demoPriority = "Low";
+const demoDeadline = "2024-03-31";
+
+let selectedAssignedValues = [];
+
 const localStorageTasks = "tasks";
 
 const hide = " hidden";
 
-const localStorageTasksArr = JSON.parse(
-  localStorage?.getItem(localStorageTasks)
-);
+let tasks = [];
 
-const sampleArr = [
-  {
-    title: demoTitle,
-    description: demoDesc,
-  },
-];
+const localStorageTasksArr = JSON.parse(localStorage?.getItem(localStorageTasks));
 
-const tasks = Array.isArray(localStorageTasksArr)
-  ? localStorageTasksArr
-  : sampleArr;
+if (!localStorageTasksArr || localStorageTasksArr.length === 0) {
+  tasks = [
+    {
+      title: demoTitle,
+      description: demoDesc,
+      assigned: demoAssigned,
+      priority: demoPriority,
+      deadline: demoDeadline,
+    },
+  ];
+} else {
+  tasks = localStorageTasksArr;
+}
 
-const taskCardHTML = (title = demoTitle, desc = demoDesc) =>
-  `
-<div class="flex justify-between items-center">
-  <div>
+console.log("Tasks below sample : ", tasks);
+
+const taskCardHTML = (title, description, assigned, priority, deadline) =>
+  ` <div class="flex justify-between items-center">
+  <div class="flex flex-col">
     <strong class="text-white">${title}</strong>
-    <p class="text-gray-300">${desc}</p>
+    <p class="text-gray-300">${description}</p>
+    <div class="flex items-center space-x-2">
+        <h1 class="text-lg text-black-500 font-bold">Assigned to :</h1>
+        <span class="text-white">${assigned.join(", ")}</span>
+    </div>
+    <div class="flex items-center space-x-2">
+        <h1 class="text-lg text-black-500 font-bold">Priority :</h1>
+        <span class="text-white">${priority}</span>
+    </div>
+    <div class="flex items-center space-x-2">
+        <h1 class="text-lg text-black-500 font-bold">Deadline :</h1>
+        <span class="text-white">${deadline}</span>
+    </div>
   </div>
 
   <div class="flex space-x-2 task-buttons">
-    <button class="text-red-500 hover:text-red-600 delete-button" title="Delete" on>
-      <i class="fas fa-trash text-red-500 hover:text-red-600"></i>
+    <button class="text-red-500 hover:text-red-600 delete-button" title="Delete">
+      <i class="fas fa-trash text-black hover:text-red-900"></i>
     </button>
     <button class="text-blue-500 hover:text-blue-600 edit-button" title="Edit">
       <i class="fas fa-edit text-blue-500 hover:text-blue-600"></i>
@@ -70,24 +92,68 @@ const additionalFunctionality = {
   },
 };
 
+const updateSelectedAssignedValues = () => {
+  selectedAssignedValues.length = 0;
+  $(".assign-selected").empty();
+
+  $('#dropdownDefaultCheckbox input[type="checkbox"]').each(function () {
+    if ($(this).prop("checked")) {
+      const selectedValue = $(this).val().trim();
+      selectedAssignedValues.push(selectedValue);
+      $(".assign-selected").append(`<div class="flex-initial p-2 bg-white text-black rounded-md">${selectedValue}</div>`);
+    }
+  });
+
+  console.log("Selected values:", selectedAssignedValues);
+};
+
 const TasksCRUD = {
   Create: () => {
     const title = $("#taskTitle").val();
     const description = $("#taskDescription").val();
+    const assigned = [...selectedAssignedValues];
+    const priority = $("#dropdownPriority").val();
+    const deadline = $("#deadlineDate").val();
 
-    if (title && description) {
-      tasks.push({ title, description });
+    console.log(title, description, assigned, priority, deadline);
+
+    if (title && description && assigned.length > 0 && priority && deadline) {
+      tasks.push({ title, description, assigned, priority, deadline });
 
       TasksCRUD.Read();
       // Clear input fields
       $("#taskTitle").val("");
       $("#taskDescription").val("");
+      $('#dropdownDefaultCheckbox input[type="checkbox"]').prop("checked", false);
+      selectedAssignedValues.length = 0;
+      $(".assign-selected").empty();
+
+      $("#dropdownPriority").val("");
+      $("#deadlineDate").val("");
 
       //focus on title
       $("#taskTitle").focus();
       setError("");
     } else {
-      setError("Title and Description is Required");
+
+      let errorMessage = "";
+
+      if (!title) {
+        errorMessage = "Title is required.";
+      } else if (!description) {
+        errorMessage = "Description is required.";
+      } else if (assigned.length === 0) {
+        errorMessage = "At least one assignee is required.";
+      } else if (!priority) {
+        errorMessage = "Priority is required.";
+      } else if (!deadline) {
+        errorMessage = "Deadline is required.";
+      }
+      else {
+        return true;
+      }
+
+      setError(errorMessage);
     }
   },
   Read: () => {
@@ -98,16 +164,30 @@ const TasksCRUD = {
 
     const filteredTasks = searchQuery
       ? tasks?.filter(
-          (task) =>
-            task.title.toLowerCase().match(searchQuery)?.length > 0 ||
-            task.description.toLowerCase().match(searchQuery)?.length > 0
-        )
+        (task) =>
+          task.title.toLowerCase().match(searchQuery)?.length > 0 ||
+          task.description.toLowerCase().match(searchQuery)?.length > 0 ||
+          task.assigned.join(", ").toLowerCase().match(searchQuery)?.length > 0 ||
+          task.priority.toLowerCase().match(searchQuery)?.length > 0 ||
+          task.deadline.toLowerCase().match(searchQuery)?.length > 0
+      )
       : tasks;
+
+    console.log("Tasks : ", tasks);
 
     filteredTasks.forEach((task, index) => {
       const taskItem = document.createElement("li");
       taskItem.classList.add("bg-gray-800", "p-2", "rounded-md", "shadow-sm");
-      taskItem.innerHTML = taskCardHTML(task.title, task.description);
+
+      if (task.priority.toLowerCase() === "high") {
+        taskItem.classList.add("priority-high");
+      } else if (task.priority.toLowerCase() === "medium") {
+        taskItem.classList.add("priority-medium");
+      } else if (task.priority.toLowerCase() === "low") {
+        taskItem.classList.add("priority-low");
+      }
+
+      taskItem.innerHTML = taskCardHTML(task.title, task.description, task.assigned, task.priority, task.deadline);
 
       // delete button functionality
       const deleteButton = taskItem.querySelector(".delete-button");
@@ -119,12 +199,29 @@ const TasksCRUD = {
 
       taskList.appendChild(taskItem);
     });
-
     localStorage.setItem(localStorageTasks, JSON.stringify(tasks));
   },
   Update: (index) => {
     $("#taskTitle").val(tasks[index].title);
     $("#taskDescription").val(tasks[index].description);
+
+    $('#dropdownDefaultCheckbox input[type="checkbox"]').each(function () {
+      if (tasks[index].assigned.includes($(this).val())) {
+
+        $(this).prop('checked', true); // Check the checkbox if the assigned value matches
+        selectedAssignedValues.push($(this).val()); // Push the value to the selectedAssignedValues array
+
+        $("#dropdownDefaultCheckbox").removeClass('hidden');
+
+        $('.assign-selected').append(`<div class="flex-initial p-2 bg-white text-black rounded-md">${$(this).val()}</div>`);
+
+      } else {
+        $(this).prop('checked', false);
+      }
+    });
+
+    $("#dropdownPriority").val(tasks[index].priority);
+    $("#deadlineDate").val(tasks[index].deadline);
     $("#taskTitle").focus();
     TasksCRUD.Delete(index);
   },
@@ -138,6 +235,10 @@ $(document).ready(() => {
   $("#addTask").click(TasksCRUD.Create);
   $("#dropdownCheckboxButton").click(additionalFunctionality.toggleDropdown);
 
+  $('#dropdownDefaultCheckbox input[type="checkbox"]').change(function () {
+    updateSelectedAssignedValues();
+  });
+
   $(window).blur(additionalFunctionality.lostFocus);
 
   $(document).keydown(additionalFunctionality.keybindings.createTask);
@@ -149,14 +250,6 @@ $(document).ready(() => {
   // search functionality
   $("#taskSearch").on("keypress", TasksCRUD.Read);
 
-  setInterval(TasksCRUD.Read, 300);
-
   // initial rendering
   TasksCRUD.Read();
 });
-
-// Initialize with existing tasks
-const deleteTask = (index) => {
-  tasks.splice(index, 1); // Remove the task at the specified index
-  TasksCRUD.Read();
-};

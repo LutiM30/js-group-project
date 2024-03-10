@@ -25,3 +25,14 @@ button {
 .task-buttons button:hover i {
   transform: scale(1.1);
 }
+.priority-high {
+  background-color: red;
+}
+
+.priority-medium {
+  background-color: rgba(255, 255, 0, 0.7);
+}
+
+.priority-low {
+  background-color: green;
+}
