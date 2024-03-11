@@ -118,8 +118,12 @@ const additionalFunctionality = {
       })`
     );
   },
+
   lostFocus: () =>
     $("#taskTitle").val() && $("#taskDescription").val() && TasksCRUD.Create(),
+
+  pageRefresh: () => $(window).bind("beforeunload", TasksCRUD.Create),
+
   toggleDropdown: () => {
     $("#dropdownDefaultCheckbox").attr("class", (i, origValue) =>
       origValue.includes(hide) ? origValue.replace(hide, "") : origValue + hide
@@ -290,6 +294,7 @@ $(document).ready(() => {
   });
 
   $(window).blur(additionalFunctionality.lostFocus);
+  additionalFunctionality.pageRefresh();
 
   $(document).keydown(additionalFunctionality.keybindings.createTask);
   $(document).keydown(additionalFunctionality.keybindings.focusTask);
