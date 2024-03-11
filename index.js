@@ -4,7 +4,7 @@ const demoDesc =
   "Lorem ipsum dolor sit amet, laboris aute ea consectetur dolore adipisicing sit nulla aliqua.";
 
 const demoAssigned = ["Varshil", "Mitul"];
-const demoPriority = "Low";
+const demoPriority = "low";
 const demoDeadline = "2024-03-31";
 const taskPriorityColors = {
   high: `bg-red-900`,
@@ -59,31 +59,28 @@ const taskCardHTML = (title, description, assigned, priority, deadline) =>
   <div class="flex flex-col">
     <strong class="text-white">${title}</strong>
     <p class="text-gray-300">${description}</p>
-${
-  assigned
+${assigned
     ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Assigned to :</h1>
         <span class="text-white">${assigned.join(", ")}</span>
     </div>`
     : ""
-}
-${
-  priority
+  }
+${priority
     ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Priority :</h1>
         <span class="text-white">${priority}</span>
     </div>`
     : ""
-}
+  }
  
- ${
-   deadline
-     ? `<div class="flex items-center space-x-2">
+ ${deadline
+    ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Deadline :</h1>
         <span class="text-white">${deadline}</span>
     </div>`
-     : ""
- }
+    : ""
+  }
   </div>
 
   <div class="flex space-x-2 task-buttons">
@@ -113,8 +110,7 @@ const additionalFunctionality = {
 
     $("#taskSearch").attr(
       "placeholder",
-      `Ctrl + / for search (${
-        getRandomOfArray(tasksTitle) || "No Tasks right now"
+      `Ctrl + / for search (${getRandomOfArray(tasksTitle) || "No Tasks right now"
       })`
     );
   },
@@ -210,20 +206,20 @@ const TasksCRUD = {
 
     const filteredTasks = searchQuery
       ? tasks?.filter((task) => {
-          const title = task.title.toLowerCase();
-          const description = task.description.toLowerCase();
-          const assignedTo = task?.assigned?.join(", ").toLowerCase();
-          const priority = task?.priority?.toLowerCase();
-          const deadline = task?.deadline?.toLowerCase();
+        const title = task.title.toLowerCase();
+        const description = task.description.toLowerCase();
+        const assignedTo = task?.assigned?.join(", ").toLowerCase();
+        const priority = task?.priority?.toLowerCase();
+        const deadline = task?.deadline?.toLowerCase();
 
-          return (
-            title?.match(searchQuery)?.length > 0 ||
-            description?.match(searchQuery)?.length > 0 ||
-            assignedTo?.match(searchQuery)?.length > 0 ||
-            priority?.match(searchQuery)?.length > 0 ||
-            deadline?.match(searchQuery)?.length > 0
-          );
-        })
+        return (
+          title?.match(searchQuery)?.length > 0 ||
+          description?.match(searchQuery)?.length > 0 ||
+          assignedTo?.match(searchQuery)?.length > 0 ||
+          priority?.match(searchQuery)?.length > 0 ||
+          deadline?.match(searchQuery)?.length > 0
+        );
+      })
       : tasks;
 
     filteredTasks.forEach((task, index) => {
