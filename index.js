@@ -254,6 +254,13 @@ const TasksCRUD = {
     localStorage.setItem(localStorageTasks, JSON.stringify(tasks));
   },
   Update: (index) => {
+    $("#taskTitle").val() &&
+      $("#taskDescription").val() &&
+      $("#dropdownPriority").val() &&
+      $("#deadlineDate").val() &&
+      $("#deadlineDate").val(tasks[index].deadline) &&
+      TasksCRUD.Create();
+
     $("#taskTitle").val(tasks[index].title);
     $("#taskDescription").val(tasks[index].description);
 
@@ -265,9 +272,10 @@ const TasksCRUD = {
         $("#dropdownDefaultCheckbox").removeClass("hidden");
 
         $(".assign-selected").append(
-          `<div class="flex-initial p-2 bg-white text-black rounded-md">${$(
-            this
-          ).val()}</div>`
+          `<div
+          class="relative grid select-none items-center whitespace-nowrap rounded-lg bg-teal-500    py-1.5 px-3 font-sans text-xs font-bold uppercase text-white ${additionalFunctionality.randomClassForChip()}">
+          <span class="">${$(this).val()}</span>
+        </div>`
         );
       } else {
         $(this).prop("checked", false);
