@@ -1,8 +1,8 @@
+//created sample of data for demonstration purposes
 const demoTitle =
   "Lorem ipsum dolor sit amet, incididunt adipisicing pariatur enim.";
 const demoDesc =
   "Lorem ipsum dolor sit amet, laboris aute ea consectetur dolore adipisicing sit nulla aliqua.";
-
 const demoAssigned = ["Varshil", "Mitul"];
 const demoPriority = "low";
 const demoDeadline = "2024-03-31";
@@ -12,12 +12,13 @@ const taskPriorityColors = {
   low: "bg-green-900",
 };
 
+// arrow function to get rendom item from array
 let selectedAssignedValues = [];
 const getRandomOfArray = (arr = []) => {
   const randomIndex = Math.floor(Math.random() * arr.length);
-
   return arr[randomIndex];
 };
+
 const localStorageTasks = "tasks";
 
 const hide = " hidden";
@@ -36,10 +37,10 @@ const colors = [
   "cyan",
 ];
 
+// Retrieve tasks from local storage or use demo data if none exists
 const localStorageTasksArr = JSON.parse(
   localStorage?.getItem(localStorageTasks)
 );
-
 if (!localStorageTasksArr || localStorageTasksArr.length === 0) {
   tasks = [
     {
@@ -54,36 +55,36 @@ if (!localStorageTasksArr || localStorageTasksArr.length === 0) {
   tasks = localStorageTasksArr;
 }
 
+// Function to generate HTML for a task card
 const taskCardHTML = (title, description, assigned, priority, deadline) =>
   ` <div class="flex justify-between items-center">
   <div class="flex flex-col">
     <strong class="text-white">${title}</strong>
     <p class="text-gray-300">${description}</p>
-${
-  assigned
+
+${assigned
     ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Assigned to :</h1>
         <span class="text-white">${assigned.join(", ")}</span>
     </div>`
     : ""
-}
-${
-  priority
+  }
+
+${priority
     ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Priority :</h1>
         <span class="text-white">${priority}</span>
     </div>`
     : ""
-}
- 
- ${
-   deadline
-     ? `<div class="flex items-center space-x-2">
+  }
+
+ ${deadline
+    ? `<div class="flex items-center space-x-2">
         <h1 class="text-lg text-black-500 font-bold">Deadline :</h1>
         <span class="text-white">${deadline}</span>
     </div>`
-     : ""
- }
+    : ""
+  }
   </div>
 
   <div class="flex space-x-2 task-buttons">
@@ -97,9 +98,12 @@ ${
 </div>
 `;
 
+// set error message
 const setError = (errorMessage = "") => $("#error").html(errorMessage);
 
+
 const additionalFunctionality = {
+  // Keybindings for various actions
   keybindings: {
     createTask: (e) =>
       e.ctrlKey && e.keyCode === 13 ? TasksCRUD.Create() : "",
@@ -108,33 +112,40 @@ const additionalFunctionality = {
     focusSearch: (e) =>
       e.ctrlKey && e.keyCode === 191 ? $("#taskSearch").focus() : "",
   },
+
+  // Change placeholder text dynamically
   changePlaceHolder: () => {
     const tasksTitle = tasks?.map((task) => task.title);
 
     $("#taskSearch").attr(
       "placeholder",
-      `Ctrl + / for search (${
-        getRandomOfArray(tasksTitle) || "No Tasks right now"
+      `Ctrl + / for search (${getRandomOfArray(tasksTitle) || "No Tasks right now"
       })`
     );
   },
 
+  // Check if both task title and description have values, then create a new task
   lostFocus: () =>
     $("#taskTitle").val() && $("#taskDescription").val() && TasksCRUD.Create(),
 
+  // To save task before refresh the page, Bind the create task function to the beforeunload event
   pageRefresh: () => $(window).bind("beforeunload", TasksCRUD.Create),
 
+  // Function to toggle dropdown visibility
   toggleDropdown: () => {
     $("#dropdownDefaultCheckbox").attr("class", (i, origValue) =>
       origValue.includes(hide) ? origValue.replace(hide, "") : origValue + hide
     );
   },
+
+  // Generate a random gradient class using colors array for chip styling
   randomClassForChip: () =>
     `bg-gradient-to-tr from-${getRandomOfArray(
       colors
     )}-900 to-${getRandomOfArray(colors)}-800`,
 };
 
+// Function to update the selected assigned values and display them visually
 const updateSelectedAssignedValues = () => {
   selectedAssignedValues.length = 0;
   $(".assign-selected").empty();
@@ -153,14 +164,18 @@ const updateSelectedAssignedValues = () => {
   });
 };
 
+// CRUD operations for tasks
 const TasksCRUD = {
+  // Create a new task
   Create: () => {
+    // Get input values
     const title = $("#taskTitle").val();
     const description = $("#taskDescription").val();
     const assigned = [...selectedAssignedValues];
     const priority = $("#dropdownPriority").val()?.toLowerCase();
     const deadline = $("#deadlineDate").val();
 
+    // Validate input values
     if (title && description && assigned.length > 0 && priority && deadline) {
       tasks.push({ title, description, assigned, priority, deadline });
 
@@ -210,20 +225,20 @@ const TasksCRUD = {
 
     const filteredTasks = searchQuery
       ? tasks?.filter((task) => {
-          const title = task.title.toLowerCase();
-          const description = task.description.toLowerCase();
-          const assignedTo = task?.assigned?.join(", ").toLowerCase();
-          const priority = task?.priority?.toLowerCase();
-          const deadline = task?.deadline?.toLowerCase();
+        const title = task.title.toLowerCase();
+        const description = task.description.toLowerCase();
+        const assignedTo = task?.assigned?.join(", ").toLowerCase();
+        const priority = task?.priority?.toLowerCase();
+        const deadline = task?.deadline?.toLowerCase();
 
-          return (
-            title?.match(searchQuery)?.length > 0 ||
-            description?.match(searchQuery)?.length > 0 ||
-            assignedTo?.match(searchQuery)?.length > 0 ||
-            priority?.match(searchQuery)?.length > 0 ||
-            deadline?.match(searchQuery)?.length > 0
-          );
-        })
+        return (
+          title?.match(searchQuery)?.length > 0 ||
+          description?.match(searchQuery)?.length > 0 ||
+          assignedTo?.match(searchQuery)?.length > 0 ||
+          priority?.match(searchQuery)?.length > 0 ||
+          deadline?.match(searchQuery)?.length > 0
+        );
+      })
       : tasks;
 
     filteredTasks.forEach((task, index) => {
@@ -280,7 +295,7 @@ const TasksCRUD = {
     TasksCRUD.Delete(index);
   },
   Delete: (index) => {
-    tasks.splice(index, 1); // Remove the task at the specified index
+    tasks.splice(index, 1);// Remove the task at the specified index
     TasksCRUD.Read();
   },
 };

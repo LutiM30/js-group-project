@@ -17,11 +17,16 @@ button {
 .task-buttons button {
   background-color: transparent;
   color: #e2e8f0;
+  /* Add transition effect to color */
   transition: color 0.2s;
 }
+
+/* Hover effect for task buttons */
 .task-buttons button:hover {
   color: #cbd5e0;
 }
+
+/* Hover effect for icon inside task buttons */
 .task-buttons button:hover i {
   transform: scale(1.1);
 }
