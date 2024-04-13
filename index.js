@@ -1,3 +1,4 @@
+//created sample of data for demonstration purposes
 const demoTitle =
   "Lorem ipsum dolor sit amet, incididunt adipisicing pariatur enim.";
 const demoDesc =
@@ -13,12 +14,13 @@ const taskPriorityColors = {
   low: "bg-green-900",
 };
 
+// arrow function to get rendom item from array
 let selectedAssignedValues = [];
 const getRandomOfArray = (arr = []) => {
   const randomIndex = Math.floor(Math.random() * arr.length);
-
   return arr[randomIndex];
 };
+
 const localStorageTasks = "tasks";
 
 const hide = " hidden";
@@ -37,10 +39,10 @@ const colors = [
   "cyan",
 ];
 
+// Retrieve tasks from local storage or use demo data if none exists
 const localStorageTasksArr = JSON.parse(
   localStorage?.getItem(localStorageTasks)
 );
-
 if (!localStorageTasksArr || localStorageTasksArr.length === 0) {
   tasks = [
     {
@@ -55,11 +57,13 @@ if (!localStorageTasksArr || localStorageTasksArr.length === 0) {
   tasks = localStorageTasksArr;
 }
 
+// Function to generate HTML for a task card
 const taskCardHTML = (title, description, assigned, priority, deadline) =>
   ` <div class="flex justify-between items-center">
   <div class="flex flex-col">
     <strong class="text-white">${title}</strong>
     <p class="text-gray-300">${description}</p>
+
 ${
   assigned
     ? `<div class="flex items-center space-x-2">
@@ -68,6 +72,7 @@ ${
     </div>`
     : ""
 }
+
 ${
   priority
     ? `<div class="flex items-center space-x-2">
@@ -76,7 +81,7 @@ ${
     </div>`
     : ""
 }
- 
+
  ${
    deadline
      ? `<div class="flex items-center space-x-2">
@@ -98,9 +103,11 @@ ${
 </div>
 `;
 
+// set error message
 const setError = (errorMessage = "") => $("#error").html(errorMessage);
 
 const additionalFunctionality = {
+  // Keybindings for various actions
   keybindings: {
     createTask: (e) =>
       e.ctrlKey && e.keyCode === 13 ? TasksCRUD.Create() : "",
@@ -109,6 +116,8 @@ const additionalFunctionality = {
     focusSearch: (e) =>
       e.ctrlKey && e.keyCode === 191 ? $("#taskSearch").focus() : "",
   },
+
+  // Change placeholder text dynamically
   changePlaceHolder: () => {
     const tasksTitle = tasks?.map((task) => task.title);
 
@@ -120,22 +129,28 @@ const additionalFunctionality = {
     );
   },
 
+  // Check if both task title and description have values, then create a new task
   lostFocus: () =>
     $("#taskTitle").val() && $("#taskDescription").val() && TasksCRUD.Create(),
 
+  // To save task before refresh the page, Bind the create task function to the beforeunload event
   pageRefresh: () => $(window).bind("beforeunload", TasksCRUD.Create),
 
+  // Function to toggle dropdown visibility
   toggleDropdown: () => {
     $("#dropdownDefaultCheckbox").attr("class", (i, origValue) =>
       origValue.includes(hide) ? origValue.replace(hide, "") : origValue + hide
     );
   },
+
+  // Generate a random gradient class using colors array for chip styling
   randomClassForChip: () =>
     `bg-gradient-to-tr from-${getRandomOfArray(
       colors
     )}-900 to-${getRandomOfArray(colors)}-800`,
 };
 
+// Function to update the selected assigned values and display them visually
 const updateSelectedAssignedValues = () => {
   selectedAssignedValues.length = 0;
   $(".assign-selected").empty();
@@ -154,14 +169,18 @@ const updateSelectedAssignedValues = () => {
   });
 };
 
+// CRUD operations for tasks
 const TasksCRUD = {
+  // Create a new task
   Create: () => {
+    // Get input values
     const title = $("#taskTitle").val();
     const description = $("#taskDescription").val();
     const assigned = [...selectedAssignedValues];
     const priority = $("#dropdownPriority").val()?.toLowerCase();
     const deadline = $("#deadlineDate").val();
 
+    // Validate input values
     if (title && description && assigned.length > 0 && priority && deadline) {
       $.ajax({
         url: apiUrl,
