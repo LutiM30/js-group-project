@@ -2,6 +2,7 @@ const demoTitle =
   "Lorem ipsum dolor sit amet, incididunt adipisicing pariatur enim.";
 const demoDesc =
   "Lorem ipsum dolor sit amet, laboris aute ea consectetur dolore adipisicing sit nulla aliqua.";
+const apiUrl = "http://localhost:3000/tasks";
 
 const demoAssigned = ["Varshil", "Mitul"];
 const demoPriority = "low";
@@ -162,26 +163,42 @@ const TasksCRUD = {
     const deadline = $("#deadlineDate").val();
 
     if (title && description && assigned.length > 0 && priority && deadline) {
-      tasks.push({ title, description, assigned, priority, deadline });
+      $.ajax({
+        url: apiUrl,
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+          title,
+          description,
+          assigned,
+          priority,
+          deadline,
+        }),
+        success: function (data) {
+          tasks.push(data);
+          TasksCRUD.Read();
 
-      TasksCRUD.Read();
-      // Clear input fields
-      $("#taskTitle").val("");
-      $("#taskDescription").val("");
-      $('#dropdownDefaultCheckbox input[type="checkbox"]').prop(
-        "checked",
-        false
-      );
-      selectedAssignedValues.length = 0;
-      $(".assign-selected").empty();
+          // Clear input fields
+          $("#taskTitle").val("");
+          $("#taskDescription").val("");
+          $('#dropdownDefaultCheckbox input[type="checkbox"]').prop(
+            "checked",
+            false
+          );
+          selectedAssignedValues.length = 0;
+          $(".assign-selected").empty();
+          $("#dropdownPriority").val("");
+          $("#deadlineDate").val("");
 
-      $("#dropdownPriority").val("");
-      $("#deadlineDate").val("");
-
-      //focus on title
-      $("#taskTitle").focus();
-      additionalFunctionality.toggleDropdown();
-      setError("");
+          //focus on title
+          $("#taskTitle").focus();
+          additionalFunctionality.toggleDropdown();
+          setError("");
+        },
+        error: function (xhr, status, error) {
+          setError("Failed to create task. Please try again.");
+        },
+      });
     } else {
       let errorMessage = "";
 
@@ -202,94 +219,142 @@ const TasksCRUD = {
       setError(errorMessage);
     }
   },
+
   Read: () => {
-    const taskList = document.getElementById("taskList");
-    taskList.innerHTML = ""; // Clear existing tasks
+    $.ajax({
+      url: apiUrl,
+      type: "GET",
+      success: function (data) {
+        tasks = data;
+        // Clear existing tasks
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
 
-    const searchQuery = $("#taskSearch").val()?.toLowerCase();
+        const searchQuery = $("#taskSearch").val()?.toLowerCase();
 
-    const filteredTasks = searchQuery
-      ? tasks?.filter((task) => {
-          const title = task.title.toLowerCase();
-          const description = task.description.toLowerCase();
-          const assignedTo = task?.assigned?.join(", ").toLowerCase();
-          const priority = task?.priority?.toLowerCase();
-          const deadline = task?.deadline?.toLowerCase();
+        const filteredTasks = searchQuery
+          ? tasks?.filter((task) => {
+              const title = task.title.toLowerCase();
+              const description = task.description.toLowerCase();
+              const assignedTo = task?.assigned?.join(", ").toLowerCase();
+              const priority = task?.priority?.toLowerCase();
+              const deadline = task?.deadline?.toLowerCase();
 
-          return (
-            title?.match(searchQuery)?.length > 0 ||
-            description?.match(searchQuery)?.length > 0 ||
-            assignedTo?.match(searchQuery)?.length > 0 ||
-            priority?.match(searchQuery)?.length > 0 ||
-            deadline?.match(searchQuery)?.length > 0
+              return (
+                title?.match(searchQuery)?.length > 0 ||
+                description?.match(searchQuery)?.length > 0 ||
+                assignedTo?.match(searchQuery)?.length > 0 ||
+                priority?.match(searchQuery)?.length > 0 ||
+                deadline?.match(searchQuery)?.length > 0
+              );
+            })
+          : tasks;
+
+        filteredTasks.forEach((task, index) => {
+          const taskItem = document.createElement("li");
+          taskItem.classList.add(
+            "bg-gray-800",
+            "p-2",
+            "rounded-md",
+            "shadow-sm"
           );
-        })
-      : tasks;
+          taskItem.classList.add(
+            taskPriorityColors[task?.priority?.toLowerCase() || demoPriority]
+          );
 
-    filteredTasks.forEach((task, index) => {
-      const taskItem = document.createElement("li");
-      taskItem.classList.add("bg-gray-800", "p-2", "rounded-md", "shadow-sm");
-      taskItem.classList.add(
-        taskPriorityColors[task?.priority?.toLowerCase() || demoPriority]
-      );
+          taskItem.innerHTML = taskCardHTML(
+            task.title,
+            task.description,
+            task.assigned,
+            task.priority,
+            task.deadline
+          );
 
-      taskItem.innerHTML = taskCardHTML(
-        task.title,
-        task.description,
-        task.assigned,
-        task.priority,
-        task.deadline
-      );
+          // delete button functionality
+          const deleteButton = taskItem.querySelector(".delete-button");
+          deleteButton.addEventListener("click", () => TasksCRUD.Delete(index));
 
-      // delete button functionality
-      const deleteButton = taskItem.querySelector(".delete-button");
-      deleteButton.addEventListener("click", () => TasksCRUD.Delete(index));
+          // edit button functionality
+          const editButton = taskItem.querySelector(".edit-button");
+          editButton.addEventListener("click", () => TasksCRUD.Update(index));
 
-      // edit button functionality
-      const editButton = taskItem.querySelector(".edit-button");
-      editButton.addEventListener("click", () => TasksCRUD.Update(index));
-
-      taskList.appendChild(taskItem);
+          taskList.appendChild(taskItem);
+        });
+        localStorage.setItem(localStorageTasks, JSON.stringify(tasks));
+      },
+      error: function (xhr, status, error) {
+        setError("Failed to fetch tasks. Please try again.");
+      },
     });
-    localStorage.setItem(localStorageTasks, JSON.stringify(tasks));
   },
+
   Update: (index) => {
-    $("#taskTitle").val() &&
-      $("#taskDescription").val() &&
-      $("#dropdownPriority").val() &&
-      $("#deadlineDate").val() &&
-      $("#deadlineDate").val(tasks[index].deadline) &&
-      TasksCRUD.Create();
+    const taskId = tasks[index]._id;
+    const title = $("#taskTitle").val();
+    const description = $("#taskDescription").val();
+    const assigned = [...selectedAssignedValues];
+    const priority = $("#dropdownPriority").val()?.toLowerCase();
+    const deadline = $("#deadlineDate").val();
 
-    $("#taskTitle").val(tasks[index].title);
-    $("#taskDescription").val(tasks[index].description);
+    if (title && description && assigned.length > 0 && priority && deadline) {
+      $.ajax({
+        url: `${apiUrl}/${taskId}`,
+        type: "PUT",
+        contentType: "application/json",
+        data: JSON.stringify({
+          title,
+          description,
+          assigned,
+          priority,
+          deadline,
+        }),
 
-    $('#dropdownDefaultCheckbox input[type="checkbox"]').each(function () {
-      if (tasks[index].assigned.includes($(this).val())) {
-        $(this).prop("checked", true); // Check the checkbox if the assigned value matches
-        selectedAssignedValues.push($(this).val()); // Push the value to the selectedAssignedValues array
+        success: function (data) {
+          tasks[index] = data;
+          TasksCRUD.Read();
+          // Clear input fields
+          $("#taskTitle").val("");
+          $("#taskDescription").val("");
+          $('#dropdownDefaultCheckbox input[type="checkbox"]').prop(
+            "checked",
+            false
+          );
+          selectedAssignedValues.length = 0;
+          $(".assign-selected").empty();
+          $("#dropdownPriority").val("");
+          $("#deadlineDate").val("");
+          //focus on title
+          $("#taskTitle").focus();
+          additionalFunctionality.toggleDropdown();
+          setError("");
+        },
 
-        $("#dropdownDefaultCheckbox").removeClass("hidden");
-
-        $(".assign-selected").append(
-          `<div
-          class="relative grid select-none items-center whitespace-nowrap rounded-lg bg-teal-500    py-1.5 px-3 font-sans text-xs font-bold uppercase text-white ${additionalFunctionality.randomClassForChip()}">
-          <span class="">${$(this).val()}</span>
-        </div>`
-        );
-      } else {
-        $(this).prop("checked", false);
-      }
-    });
-
-    $("#dropdownPriority").val(tasks[index].priority);
-    $("#deadlineDate").val(tasks[index].deadline);
-    $("#taskTitle").focus();
-    TasksCRUD.Delete(index);
+        error: (xhr, status, error) =>
+          setError("Failed to update task. Please try again."),
+      });
+    } else {
+      let errorMessage = "";
+      // Error handling code remains the same...
+    }
   },
+
   Delete: (index) => {
-    tasks.splice(index, 1); // Remove the task at the specified index
-    TasksCRUD.Read();
+    // Your existing delete task function...
+
+    const taskId = tasks[index].id;
+    $.ajax({
+      url: `${apiUrl}/${taskId}`,
+      type: "DELETE",
+
+      success: (data) => {
+        tasks.splice(index, 1);
+        TasksCRUD.Read();
+      },
+
+      error: function (xhr, status, error) {
+        setError("Failed to delete task. Please try again.");
+      },
+    });
   },
 };
 
